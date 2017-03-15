@@ -452,6 +452,7 @@ public class OpenIDConnectServerConfig {
 	 * only have one of these. If you have multiple token enhancers, you'll also
 	 * need to define your own DefaultOAuth2ProviderTokenService and inject a
 	 * TokenEnhancerChain with your list of TokenEnhancers
+	 * @return TokenEnhancer
 	 */
 	@Bean
 	@ConditionalOnMissingBean(TokenEnhancer.class)
