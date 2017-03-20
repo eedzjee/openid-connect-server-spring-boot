@@ -23,6 +23,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mitre.springboot.EndpointTestsBase;
+import org.mockito.internal.util.collections.ArrayUtils;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -313,18 +314,21 @@ public class JwtAuthorizeEndpointFlowTests extends EndpointTestsBase {
 	}
 	
 	protected void validateAccessToken(SignedJWT accessToken, String clientId) throws ParseException {
-        Assert.assertEquals(clientId,accessToken.getJWTClaimsSet().getAudience().get(0));
+		System.out.println("accessToken: " + accessToken.getJWTClaimsSet().toString() + ", clientID: " + clientId);
+		
+		//FIXME token has changed in Mitre 1.2.6
+        //Assert.assertEquals("client_id",accessToken.getJWTClaimsSet().getAudience().get(0));
+        Assert.assertEquals(clientId,accessToken.getJWTClaimsSet().getClaim("azp"));
         Assert.assertEquals("http://localhost:-1/",accessToken.getJWTClaimsSet().getIssuer());
         Assert.assertNotNull(accessToken.getJWTClaimsSet().getExpirationTime());
         Assert.assertNotNull(accessToken.getJWTClaimsSet().getIssueTime());
         Assert.assertNotNull(accessToken.getJWTClaimsSet().getJWTID());
-        
+
         //TODO validate RSA signature
 	}
 
 	
 	protected void validateIdToken(SignedJWT idToken, String clientId) throws ParseException {
-
         Assert.assertEquals(userSubject, idToken.getJWTClaimsSet().getSubject());
         Assert.assertEquals(nonce, idToken.getJWTClaimsSet().getStringClaim("nonce"));
         Assert.assertEquals(clientId,idToken.getJWTClaimsSet().getAudience().get(0));

@@ -2,8 +2,6 @@ package org.mitre.springboot.config;
 
 import javax.servlet.Filter;
 
-import org.mitre.discovery.view.WebfingerView;
-import org.mitre.discovery.web.DiscoveryEndpoint;
 import org.mitre.jwt.signer.service.impl.ClientKeyCacheService;
 import org.mitre.jwt.signer.service.impl.JWKSetCacheService;
 import org.mitre.jwt.signer.service.impl.SymmetricKeyJWTValidatorCacheService;
@@ -32,11 +30,8 @@ import org.mitre.oauth2.service.impl.UriEncodedClientUserDetailsService;
 import org.mitre.oauth2.token.ChainedTokenGranter;
 import org.mitre.oauth2.token.JWTAssertionTokenGranter;
 import org.mitre.oauth2.token.StructuredScopeAwareOAuth2RequestValidator;
-import org.mitre.oauth2.view.TokenApiView;
 import org.mitre.oauth2.web.CorsFilter;
 import org.mitre.oauth2.web.OAuthConfirmationController;
-import org.mitre.oauth2.web.ScopeAPI;
-import org.mitre.oauth2.web.TokenAPI;
 import org.mitre.openid.connect.config.ConfigurationPropertiesBean;
 import org.mitre.openid.connect.filter.AuthorizationRequestFilter;
 import org.mitre.openid.connect.repository.AddressRepository;
@@ -54,6 +49,7 @@ import org.mitre.openid.connect.repository.impl.JpaWhitelistedSiteRepository;
 import org.mitre.openid.connect.request.ConnectOAuth2RequestFactory;
 import org.mitre.openid.connect.service.ApprovedSiteService;
 import org.mitre.openid.connect.service.BlacklistedSiteService;
+import org.mitre.openid.connect.service.ClientLogoLoadingService;
 import org.mitre.openid.connect.service.OIDCTokenService;
 import org.mitre.openid.connect.service.PairwiseIdentiferService;
 import org.mitre.openid.connect.service.ScopeClaimTranslationService;
@@ -68,36 +64,19 @@ import org.mitre.openid.connect.service.impl.DefaultStatsService;
 import org.mitre.openid.connect.service.impl.DefaultUserInfoService;
 import org.mitre.openid.connect.service.impl.DefaultWhitelistedSiteService;
 import org.mitre.openid.connect.service.impl.DummyResourceSetService;
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_0;
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_1;
-import org.mitre.openid.connect.service.impl.MITREidDataService_1_2;
+import org.mitre.openid.connect.service.impl.InMemoryClientLogoLoadingService;
 import org.mitre.openid.connect.service.impl.UUIDPairwiseIdentiferService;
 import org.mitre.openid.connect.token.ConnectTokenEnhancer;
 import org.mitre.openid.connect.token.TofuUserApprovalHandler;
-import org.mitre.openid.connect.view.ClientEntityViewForAdmins;
-import org.mitre.openid.connect.view.ClientEntityViewForUsers;
-import org.mitre.openid.connect.view.ClientInformationResponseView;
 import org.mitre.openid.connect.view.HttpCodeView;
-import org.mitre.openid.connect.view.JWKSetView;
-import org.mitre.openid.connect.view.JsonApprovedSiteView;
 import org.mitre.openid.connect.view.JsonEntityView;
 import org.mitre.openid.connect.view.JsonErrorView;
-import org.mitre.openid.connect.web.ApprovedSiteAPI;
 import org.mitre.openid.connect.web.AuthenticationTimeStamper;
-import org.mitre.openid.connect.web.BlacklistAPI;
-import org.mitre.openid.connect.web.ClientAPI;
-import org.mitre.openid.connect.web.DataAPI;
-import org.mitre.openid.connect.web.DynamicClientRegistrationEndpoint;
-import org.mitre.openid.connect.web.JWKSetPublishingEndpoint;
-import org.mitre.openid.connect.web.ProtectedResourceRegistrationEndpoint;
-import org.mitre.openid.connect.web.StatsAPI;
-import org.mitre.openid.connect.web.WhitelistAPI;
 import org.mitre.springboot.config.annotation.EnableOpenIDConnectServer;
 import org.mitre.uma.service.ResourceSetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -398,7 +377,13 @@ public class OpenIDConnectServerConfig {
 	public BlacklistedSiteService defaultBlacklistedSiteService() {
 		return new DefaultBlacklistedSiteService();
 	}
-	
+
+	@Bean
+	@ConditionalOnMissingBean(ClientLogoLoadingService.class)
+	public ClientLogoLoadingService imMemoryClientLogoLoadingService() {
+		return new InMemoryClientLogoLoadingService();
+	}
+
 	@Bean
 	@ConditionalOnMissingBean(OIDCTokenService.class)
 	public OIDCTokenService defaultOIDCTokenService() {
